@@ -6,6 +6,7 @@ public record User(
         String email,
         String passwordHash,
         String role,
+        String status,
         String createdAt
 ) {
 }

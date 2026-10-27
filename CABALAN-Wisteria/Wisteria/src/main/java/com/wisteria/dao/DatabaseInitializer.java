@@ -15,6 +15,7 @@ public class DatabaseInitializer {
                     email TEXT NOT NULL UNIQUE,
                     password_hash TEXT NOT NULL,
                     role TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'PENDING',
                     created_at TEXT NOT NULL
                 )
                 """;
@@ -101,8 +102,17 @@ public class DatabaseInitializer {
                 )
                 """;
 
+        // Default admin so someone can approve new accounts
+        String insertDefaultAdmin = """
+                INSERT OR IGNORE INTO users
+                (full_name, email, password_hash, role, status, created_at)
+                VALUES
+                ('System Admin', 'admin@wisteria.com', 'admin123',
+                 'ADMIN', 'APPROVED', datetime('now'))
+                """;
+
         try (
-                Connection connection = com.wisteria.dao.DatabaseConnection.getConnection();
+                Connection connection = DatabaseConnection.getConnection();
                 Statement statement = connection.createStatement()
         ) {
 
@@ -112,6 +122,7 @@ public class DatabaseInitializer {
             statement.execute(createCareLogsTable);
             statement.execute(createHealthIncidentsTable);
             statement.execute(createActivityLogsTable);
+            statement.execute(insertDefaultAdmin);
 
             System.out.println();
             System.out.println("=================================");

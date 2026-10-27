@@ -33,12 +33,8 @@ public class Authentication {
             System.out.println("==============================");
             System.out.println("          WISTERIA");
             System.out.println("==============================");
-            System.out.println(
-                    "Rare Plant Care &"
-            );
-            System.out.println(
-                    "Seedling Micro-Nursery Log"
-            );
+            System.out.println("Rare Plant Care &");
+            System.out.println("Seedling Micro-Nursery Log");
             System.out.println("==============================");
             System.out.println("1. Register Account");
             System.out.println("2. Login");
@@ -47,8 +43,7 @@ public class Authentication {
 
             System.out.print("Choose an option: ");
 
-            String choice =
-                    scanner.nextLine().trim();
+            String choice = scanner.nextLine().trim();
 
             switch (choice) {
 
@@ -62,17 +57,13 @@ public class Authentication {
 
                 case "3":
                     System.out.println();
-                    System.out.println(
-                            "Thank you for using Wisteria!"
-                    );
+                    System.out.println("Thank you for using Wisteria!");
                     running = false;
                     break;
 
                 default:
                     System.out.println();
-                    System.out.println(
-                            "Invalid choice. Please select 1-3."
-                    );
+                    System.out.println("Invalid choice. Please select 1-3.");
             }
         }
     }
@@ -90,16 +81,13 @@ public class Authentication {
         System.out.println("==============================");
 
         System.out.print("Full name: ");
-        String fullName =
-                scanner.nextLine().trim();
+        String fullName = scanner.nextLine().trim();
 
         System.out.print("Email: ");
-        String email =
-                scanner.nextLine().trim();
+        String email = scanner.nextLine().trim();
 
         System.out.print("Password: ");
-        String password =
-                scanner.nextLine().trim();
+        String password = scanner.nextLine().trim();
 
         System.out.println();
         System.out.println("Select your role:");
@@ -108,8 +96,7 @@ public class Authentication {
 
         System.out.print("Choose role: ");
 
-        String roleChoice =
-                scanner.nextLine().trim();
+        String roleChoice = scanner.nextLine().trim();
 
         String role;
 
@@ -125,21 +112,16 @@ public class Authentication {
 
             default:
                 System.out.println();
-                System.out.println(
-                        "Invalid role selection."
-                );
+                System.out.println("Invalid role selection.");
                 return;
         }
 
-        if (fullName.trim().isEmpty()
-                || email.trim().isEmpty()
-                || password.trim().isEmpty()) {
+        if (fullName.isEmpty()
+                || email.isEmpty()
+                || password.isEmpty()) {
 
             System.out.println();
-            System.out.println(
-                    "All fields are required."
-            );
-
+            System.out.println("All fields are required.");
             return;
         }
 
@@ -154,12 +136,8 @@ public class Authentication {
         if (registered) {
 
             System.out.println();
-            System.out.println(
-                    "Registration successful!"
-            );
-            System.out.println(
-                    "You can now log in."
-            );
+            System.out.println("Registration successful!");
+            System.out.println("Your account is pending admin approval.");
         }
     }
 
@@ -176,26 +154,27 @@ public class Authentication {
         System.out.println("==============================");
 
         System.out.print("Email: ");
-        String email =
-                scanner.nextLine().trim();
+        String email = scanner.nextLine().trim();
 
         System.out.print("Password: ");
-        String password =
-                scanner.nextLine().trim();
+        String password = scanner.nextLine().trim();
 
-        User user =
-                userDao.login(
-                        email,
-                        password
-                );
+        User user = userDao.login(email, password);
 
         if (user == null) {
 
             System.out.println();
-            System.out.println(
-                    "Invalid email or password."
-            );
+            System.out.println("Invalid email or password.");
+            return;
+        }
 
+        // Block accounts that have not been approved yet
+        if (!"APPROVED".equalsIgnoreCase(user.status())) {
+
+            System.out.println();
+            System.out.println(
+                    "Your account is " + user.status()
+                            + ". Please wait for admin approval.");
             return;
         }
 
@@ -204,13 +183,8 @@ public class Authentication {
         System.out.println("       LOGIN SUCCESSFUL");
         System.out.println("==============================");
 
-        System.out.println(
-                "Welcome, " + user.fullName() + "!"
-        );
-
-        System.out.println(
-                "Role: " + user.role()
-        );
+        System.out.println("Welcome, " + user.fullName() + "!");
+        System.out.println("Role: " + user.role());
 
         routeUser(user);
     }
@@ -227,9 +201,7 @@ public class Authentication {
             case "CUSTOMER":
 
                 System.out.println();
-                System.out.println(
-                        "Opening Customer Menu..."
-                );
+                System.out.println("Opening Customer Menu...");
 
                 openMainMenu(user);
                 break;
@@ -238,9 +210,7 @@ public class Authentication {
             case "STAFF":
 
                 System.out.println();
-                System.out.println(
-                        "Opening Nursery Staff Menu..."
-                );
+                System.out.println("Opening Nursery Staff Menu...");
 
                 openMainMenu(user);
                 break;
@@ -249,21 +219,16 @@ public class Authentication {
             case "ADMIN":
 
                 System.out.println();
-                System.out.println(
-                        "Opening Admin Menu..."
-                );
+                System.out.println("Opening Admin Menu...");
 
-                openMainMenu(user);
+                new AdminMenu(scanner, userDao, user).show();
                 break;
 
 
             default:
 
                 System.out.println();
-                System.out.println(
-                        "Unknown role: "
-                                + user.role()
-                );
+                System.out.println("Unknown role: " + user.role());
         }
     }
 
