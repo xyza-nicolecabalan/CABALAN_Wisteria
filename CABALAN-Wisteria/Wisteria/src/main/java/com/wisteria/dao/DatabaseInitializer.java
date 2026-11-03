@@ -90,15 +90,19 @@ public class DatabaseInitializer {
                 )
                 """;
 
+        // UPDATED for Deliverable 7: action_type + description columns,
+        // and ON DELETE CASCADE on the user_id foreign key.
         String createActivityLogsTable = """
                 CREATE TABLE IF NOT EXISTS activity_logs (
                     log_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id INTEGER NOT NULL,
-                    action_description TEXT NOT NULL,
+                    action_type TEXT NOT NULL,
+                    description TEXT NOT NULL,
                     timestamp TEXT NOT NULL,
 
                     FOREIGN KEY (user_id)
                         REFERENCES users(user_id)
+                        ON DELETE CASCADE
                 )
                 """;
 

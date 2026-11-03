@@ -1,5 +1,6 @@
 package com.wisteria.ui;
 
+import com.wisteria.dao.ActivityLogDao;
 import com.wisteria.dao.UserDao;
 import com.wisteria.model.User;
 
@@ -9,6 +10,7 @@ public class Authentication {
 
     private final UserDao userDao;
     private final Scanner scanner;
+    private final ActivityLogDao activityLogDao = new ActivityLogDao();
 
     public Authentication(
             UserDao userDao,
@@ -19,9 +21,7 @@ public class Authentication {
     }
 
 
-    // ==============================
     // START AUTHENTICATION SYSTEM
-    // ==============================
 
     public void start() {
 
@@ -69,9 +69,7 @@ public class Authentication {
     }
 
 
-    // ==============================
     // REGISTER
-    // ==============================
 
     private void register() {
 
@@ -142,9 +140,7 @@ public class Authentication {
     }
 
 
-    // ==============================
     // LOGIN
-    // ==============================
 
     private void login() {
 
@@ -186,13 +182,34 @@ public class Authentication {
         System.out.println("Welcome, " + user.fullName() + "!");
         System.out.println("Role: " + user.role());
 
+        // Audit log: successful login
+        activityLogDao.logAction(
+                user.userId(),
+                "USER_LOGIN",
+                "User " + user.fullName()
+                        + " (ID: " + user.userId() + ") logged in.");
+
         routeUser(user);
+
+        // routeUser() returns only after the user chooses "0. Logout"
+        logout(user);
     }
 
 
-    // ==============================
+    // LOGOUT
+
+    private void logout(User user) {
+
+        // Audit log: logout
+        activityLogDao.logAction(
+                user.userId(),
+                "USER_LOGOUT",
+                "User " + user.fullName()
+                        + " (ID: " + user.userId() + ") logged out.");
+    }
+
+
     // ROLE ROUTING
-    // ==============================
 
     private void routeUser(User user) {
 
@@ -233,9 +250,7 @@ public class Authentication {
     }
 
 
-    // ==============================
     // OPEN MAIN MENU
-    // ==============================
 
     private void openMainMenu(User user) {
 

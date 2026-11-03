@@ -12,14 +12,10 @@ import java.util.List;
 
 public class UserDao {
 
-    private static final String USER_COLUMNS = """
-            user_id, full_name, email, password_hash,
-            role, status, created_at
-            """;
+    // Used to write audit entries for approvals and role/status updates
+    private final ActivityLogDao activityLogDao = new ActivityLogDao();
 
-    // ==============================
     // REGISTER USER
-    // ==============================
 
     public boolean registerUser(
             String fullName,
@@ -60,14 +56,16 @@ public class UserDao {
         }
     }
 
-    // ==============================
     // LOGIN USER
-    // ==============================
 
     public User login(String email, String password) {
 
-        String sql = "SELECT " + USER_COLUMNS
-                + " FROM users WHERE email = ? AND password_hash = ?";
+        String sql = """
+                SELECT user_id, full_name, email, password_hash,
+                       role, status, created_at
+                FROM users
+                WHERE email = ? AND password_hash = ?
+                """;
 
         try (
                 Connection connection = DatabaseConnection.getConnection();
@@ -91,13 +89,16 @@ public class UserDao {
         return null;
     }
 
-    // ==============================
     // FIND USER BY EMAIL
-    // ==============================
 
     public User findByEmail(String email) {
 
-        String sql = "SELECT " + USER_COLUMNS + " FROM users WHERE email = ?";
+        String sql = """
+                SELECT user_id, full_name, email, password_hash,
+                       role, status, created_at
+                FROM users
+                WHERE email = ?
+                """;
 
         try (
                 Connection connection = DatabaseConnection.getConnection();
@@ -120,13 +121,17 @@ public class UserDao {
         return null;
     }
 
-    // ==============================
     // GET ALL USERS
-    // ==============================
 
     public List<User> getAllUsers() {
 
-        String sql = "SELECT " + USER_COLUMNS + " FROM users ORDER BY user_id";
+        String sql = """
+                SELECT user_id, full_name, email, password_hash,
+                       role, status, created_at
+                FROM users
+                ORDER BY user_id
+                """;
+
         List<User> users = new ArrayList<>();
 
         try (
@@ -147,14 +152,18 @@ public class UserDao {
         return users;
     }
 
-    // ==============================
     // GET PENDING USERS
-    // ==============================
 
     public List<User> getPendingUsers() {
 
-        String sql = "SELECT " + USER_COLUMNS
-                + " FROM users WHERE status = 'PENDING' ORDER BY user_id";
+        String sql = """
+                SELECT user_id, full_name, email, password_hash,
+                       role, status, created_at
+                FROM users
+                WHERE status = 'PENDING'
+                ORDER BY user_id
+                """;
+
         List<User> users = new ArrayList<>();
 
         try (
@@ -175,9 +184,7 @@ public class UserDao {
         return users;
     }
 
-    // ==============================
     // APPROVE USER
-    // ==============================
 
     public boolean approveUser(int userId) {
 
@@ -198,9 +205,24 @@ public class UserDao {
         }
     }
 
-    // ==============================
+    // APPROVE USER (WITH AUDIT LOG)
+
+    public boolean approveUser(int adminId, int userId) {
+
+        boolean success = approveUser(userId);
+
+        if (success) {
+            activityLogDao.logAction(
+                    adminId,
+                    "USER_APPROVED",
+                    "Admin " + adminId
+                            + " approved account for User ID " + userId);
+        }
+
+        return success;
+    }
+
     // UPDATE USER ROLE AND STATUS
-    // ==============================
 
     public boolean updateUserRoleAndStatus(
             int userId,
@@ -231,9 +253,29 @@ public class UserDao {
         }
     }
 
-    // ==============================
+    // UPDATE ROLE/STATUS (WITH AUDIT LOG)
+
+    public boolean updateUserRoleAndStatus(
+            int adminId,
+            int userId,
+            String newRole,
+            String newStatus) {
+
+        boolean success = updateUserRoleAndStatus(userId, newRole, newStatus);
+
+        if (success) {
+            activityLogDao.logAction(
+                    adminId,
+                    "USER_UPDATED",
+                    "Admin " + adminId + " changed User " + userId
+                            + " to role " + newRole.toUpperCase()
+                            + ", status " + newStatus.toUpperCase());
+        }
+
+        return success;
+    }
+
     // HELPER: ResultSet -> User
-    // ==============================
 
     private User mapUser(ResultSet result) throws SQLException {
         return new User(
