@@ -199,6 +199,39 @@ public class UserDao {
     }
 
     // ==============================
+    // UPDATE USER ROLE AND STATUS
+    // ==============================
+
+    public boolean updateUserRoleAndStatus(
+            int userId,
+            String newRole,
+            String newStatus) {
+
+        String sql = """
+                UPDATE users
+                SET role = ?, status = ?
+                WHERE user_id = ?
+                """;
+
+        try (
+                Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+
+            statement.setString(1, newRole.toUpperCase());
+            statement.setString(2, newStatus.toUpperCase());
+            statement.setInt(3, userId);
+
+            return statement.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error updating user.");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // ==============================
     // HELPER: ResultSet -> User
     // ==============================
 
